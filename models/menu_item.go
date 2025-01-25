@@ -1,3 +1,5 @@
+package models
+
 type MenuItem struct {
 	ID          string               `json:"product_id"`
 	Name        string               `json:"name"`
