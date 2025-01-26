@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./order_table.css"
+import OrderButton from "./order_button/order_button";
 
 type Item = {
     product_id: string;
@@ -59,6 +60,7 @@ export default function OrderTable() {
                         <th className="table_th">Status</th>
                         <th className="table_th">Created At</th>
                         <th className="table_th">Items</th>
+                        <th className="table_th">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -76,6 +78,9 @@ export default function OrderTable() {
                                         </li>
                                     ))}
                                 </ul>
+                            </td>
+                            <td className="table_td">
+                                <OrderButton />
                             </td>
                         </tr>
                     ))}
