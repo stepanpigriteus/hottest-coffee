@@ -1,7 +1,13 @@
 .order_button {
-    padding: 0.2rem 0.4rem;
+    padding: 0.4rem 0.4rem;
     background-color: rgba(33, 203, 33, 0.561);
     width: fit-content;
     text-align: center;
     line-height: 100%;
+    margin: 0.1rem 0.3rem;
+}
+
+.order_button:hover {
+    background-color: black;
+    color: white;
 }

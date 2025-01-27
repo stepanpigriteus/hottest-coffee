@@ -1,14 +1,17 @@
 
 
 import './App.css'
-import OrderTable from './order_table/order_table'
+import Header from './components/header/header'
+
+import OrderTable from './components/order_table/order_table'
 
 function App() {
 
 
   return (
     <>
-      <OrderTable />
+    <Header/>
+    <OrderTable />
     </>
   )
 }

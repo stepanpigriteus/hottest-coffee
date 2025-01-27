@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./order_table.css"
-import OrderButton from "./order_button/order_button";
+import Button from "./order_button/order_button";
 
 type Item = {
     product_id: string;
@@ -8,7 +8,7 @@ type Item = {
 };
 
 type Order = {
-    order_id: string;
+    order_id: string; 
     customer_name: string;
     items: Item[];
     status: string;
@@ -28,14 +28,15 @@ export default function OrderTable() {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data: Order[] = await response.json();
+
                 setOrders(data);
+     
             } catch (err: any) {
                 setError(err.message);
             } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, []);
 
@@ -48,6 +49,14 @@ export default function OrderTable() {
     if (!orders.length) {
         return <p>No orders available.</p>;
     }
+    const handleCloseOrder = (orderId: string) => {
+        setOrders((prevOrders) =>
+            prevOrders.map((order) =>
+                order.order_id === orderId ? { ...order, status: "Closed" } : order
+            )
+        );
+    };
+
 
     return (
         <div className="table_container">
@@ -79,8 +88,9 @@ export default function OrderTable() {
                                     ))}
                                 </ul>
                             </td>
-                            <td className="table_td">
-                                <OrderButton />
+                            <td className="table_td button_container">
+                            <Button orderId={order.order_id} title = { "Close"} onClose={handleCloseOrder}  />
+                            <Button orderId={order.order_id}  title = { "Delete"} onClose={handleCloseOrder}  />
                             </td>
                         </tr>
                     ))}
