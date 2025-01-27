@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"hot/config"
 	"hot/internal/pkg/flags"
 	"hot/internal/pkg/server"
+	"hot/models"
 )
 
 func main() {
@@ -36,6 +38,23 @@ func main() {
 				os.Exit(1)
 			}
 			defer file.Close()
+			if r == "aggregations.json" {
+				empty := models.Aggregation{TotalSales: 0, ItemSales: []models.AggregationItem{}}
+				byteValue, err := json.MarshalIndent(empty, "", "\t")
+				if err != nil {
+					print(err.Error())
+				}
+				err = os.WriteFile(path, byteValue, 0o755)
+				if err != nil {
+					print(err.Error())
+				}
+			}
+			config.Logger.Info("Created file", slog.String("file", path))
+		} else if err != nil {
+			config.Logger.Error("Error checking file", slog.String("file", r), slog.Any("error", err))
+			os.Exit(1)
+		} else {
+			config.Logger.Info("File already exists", slog.String("file", path))
 		}
 
 	}
