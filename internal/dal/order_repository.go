@@ -23,7 +23,9 @@ type Orders struct {
 }
 
 func (orders *Orders) GetOrderById(id string) (models.Order, error) {
-	Open(orders)
+	if _, err := Open(orders); err != nil {
+		return models.Order{}, err
+	}
 	for _, el := range orders.orders {
 		if el.ID == id {
 			item := &models.Order{
@@ -38,6 +40,14 @@ func (orders *Orders) GetOrderById(id string) (models.Order, error) {
 	}
 
 	return models.Order{}, models.ErrOrderNotFound
+}
+
+func (orders *Orders) GetOrders() ([]models.Order, error) {
+	if _, err := Open(orders); err != nil {
+		return nil, err
+	}
+
+	return orders.orders, nil
 }
 
 func (orders *Orders) DeleteOrderById(id string) error {
@@ -66,12 +76,41 @@ func (orders *Orders) DeleteOrderById(id string) error {
 	return nil
 }
 
-func (orders *Orders) UpdateOrderById(id string) error {
-	return models.ErrDuplicateOrderID
+func (orders *Orders) PostOrder(item *models.Order) error {
+	if _, err := Open(orders); err != nil {
+		return err
+	}
+
+	for _, order := range orders.orders {
+		if order.ID == item.ID {
+			return models.ErrDuplicateOrderID
+		}
+	}
+	orders.orders = append(orders.orders, *item)
+
+	if err := saveOrdersToFile(orders); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (orders *Orders) CloseOrderById(id string) error {
-	return models.ErrDuplicateOrderID
+func (orders *Orders) CloseOrder(id string) error {
+	if _, err := Open(orders); err != nil {
+		return err
+	}
+
+	for i, el := range orders.orders {
+		if el.ID == id {
+			orders.orders[i].Status = "closed"
+			if err := saveOrdersToFile(orders); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return models.ErrOrderNotFound
 }
 
 func Open(orders *Orders) (Orders, error) {
@@ -99,20 +138,17 @@ func Open(orders *Orders) (Orders, error) {
 func saveOrdersToFile(orders *Orders) error {
 	path := filepath.Join(config.Dir, "orders.json")
 
-	// Преобразуем orders в JSON
 	data, err := json.Marshal(orders)
 	if err != nil {
 		return err
 	}
 
-	// Открываем файл для записи (перезаписываем его)
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Записываем данные в файл
 	_, err = file.Write(data)
 	if err != nil {
 		return err
