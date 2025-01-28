@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
+	"hot/internal/handler"
 	"hot/internal/pkg/config"
 	"hot/internal/pkg/flags"
-	"hot/internal/pkg/server"
 	"log/slog"
 	"os"
 	"path/filepath"
 )
 
 func main() {
+	handler.StartServer()
 	config.Addr, config.Dir = flags.Flags()
 	config.Logger = config.NewLogger()
 	fmt.Println(config.Dir)
@@ -38,6 +39,5 @@ func main() {
 		}
 
 	}
-
-	server.Start(config.Addr, config.Dir)
+	handler.StartServer()
 }

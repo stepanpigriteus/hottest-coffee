@@ -1,6 +1,9 @@
-package server
+package handler
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 func StartServer() {
 	mux := http.NewServeMux()
@@ -9,5 +12,8 @@ func StartServer() {
 	mux.Handle("/inventory/", &inventoryHandler{})
 	mux.Handle("/reports/", &aggregationHandler{})
 
-	http.ListenAndServe(":8000", mux)
+	err := http.ListenAndServe(":8000", mux)
+	if err != nil {
+		log.Fatal("Error starting server: ", err)
+	}
 }
