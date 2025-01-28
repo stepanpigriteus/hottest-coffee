@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 	"strings"
 )
@@ -51,7 +52,17 @@ func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
-	w.Write([]byte("getOrderById"))
+	response, err := myGet()
+	if err != nil {
+		w.Write([]byte("internal server error"))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		w.Write([]byte("error encoding json"))
+		return
+	}
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
@@ -68,4 +79,8 @@ func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request, id
 
 func (o *orderHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
+}
+
+func myGet() (string, error) {
+	return "response", nil
 }
