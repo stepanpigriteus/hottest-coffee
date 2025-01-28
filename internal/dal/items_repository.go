@@ -131,20 +131,19 @@ func (items *Items) PutItemById(id, name, unit string, quantity float64) error {
 func OpenItems(items *Items) error {
 	path := filepath.Join(config.Dir, "inventory.json")
 
-	// Открываем файл с инвентарем
+
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Читаем все данные из файла
+
 	value, err := io.ReadAll(file)
 	if err != nil {
 		return err
 	}
 
-	// Десериализуем данные в inventory
 	err = json.Unmarshal(value, &items.inventory)
 	if err != nil {
 		return err
@@ -156,13 +155,12 @@ func OpenItems(items *Items) error {
 func saveItemsToFile(items *Items) error {
 	path := filepath.Join(config.Dir, "inventory.json")
 
-	// Преобразуем инвентарь в JSON
+
 	data, err := json.Marshal(items.inventory)
 	if err != nil {
 		return err
 	}
 
-	// Открываем файл для записи
 	file, err := os.Create(path)
 	if err != nil {
 		return err
