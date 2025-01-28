@@ -3,13 +3,14 @@ package dal
 import (
 	"encoding/json"
 	"fmt"
-	"hot/internal/pkg/config"
-	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
+
+	"hot/internal/pkg/config"
+	"hot/models"
 )
 
 type OrderInterface interface {
@@ -105,7 +106,6 @@ func (orders *Orders) PostOrder(order *models.Order) error {
 	return nil
 }
 
-// сломал и не понял где!
 func (orders *Orders) PutUpdate(item *models.Order, id string) error {
 	if err := Open(orders); err != nil {
 		fmt.Println("!")

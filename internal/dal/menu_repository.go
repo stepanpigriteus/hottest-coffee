@@ -2,11 +2,13 @@ package dal
 
 import (
 	"encoding/json"
-	"hot/internal/pkg/config"
-	"hot/models"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+
+	"hot/internal/pkg/config"
+	"hot/models"
 )
 
 type MenuInterface interface {
@@ -37,6 +39,7 @@ func (menuItems *MenuItems) GetMenuItemById(id string) (models.MenuItem, error) 
 
 func (menuItems *MenuItems) GetMenuItems() ([]models.MenuItem, error) {
 	if err := OpenMenu(menuItems); err != nil {
+		fmt.Println(err, menuItems)
 		return nil, err
 	}
 
@@ -90,7 +93,7 @@ func (menuItems *MenuItems) PostMenuItem(menuItem *models.MenuItem) error {
 	return nil
 }
 
-func (menuItems *MenuItems) PutMenuItemById(id, name, description string, price float64, ingredients []models.MenuItemIngredient) error {
+func (menuItems *MenuItems) PutMenuItemById(menuItem *models.MenuItem, id string) error {
 	if err := OpenMenu(menuItems); err != nil {
 		return err
 	}
@@ -98,10 +101,10 @@ func (menuItems *MenuItems) PutMenuItemById(id, name, description string, price 
 	for i, el := range menuItems.menu {
 		if el.ID == id {
 
-			menuItems.menu[i].Name = name
-			menuItems.menu[i].Description = description
-			menuItems.menu[i].Price = price
-			menuItems.menu[i].Ingredients = ingredients
+			menuItems.menu[i].Name = menuItem.Name
+			menuItems.menu[i].Description = menuItem.Description
+			menuItems.menu[i].Price = menuItem.Price
+			menuItems.menu[i].Ingredients = menuItem.Ingredients
 
 			if err := saveMenuToFile(menuItems); err != nil {
 				return err
@@ -115,7 +118,7 @@ func (menuItems *MenuItems) PutMenuItemById(id, name, description string, price 
 }
 
 func OpenMenu(menuItems *MenuItems) error {
-	path := filepath.Join(config.Dir, "menu.json")
+	path := filepath.Join(config.Dir, "menu_items.json")
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -137,22 +140,19 @@ func OpenMenu(menuItems *MenuItems) error {
 }
 
 func saveMenuToFile(menuItems *MenuItems) error {
-	path := filepath.Join(config.Dir, "menu.json")
+	path := filepath.Join(config.Dir, "menu_items.json")
 
-	// Преобразуем меню в JSON
 	data, err := json.Marshal(menuItems.menu)
 	if err != nil {
 		return err
 	}
 
-	// Открываем файл для записи
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Записываем данные в файл
 	_, err = file.Write(data)
 	if err != nil {
 		return err
