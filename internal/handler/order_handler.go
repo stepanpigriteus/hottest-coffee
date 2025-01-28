@@ -21,21 +21,22 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	id := endpoint[2]
 	if len(endpoint) == 3 {
 		switch method {
 		case "GET":
-			o.getOrderById(w, r)
+			o.getOrderById(w, r, id)
 		case "PUT":
-			o.putUpdateOrder(w, r)
+			o.putUpdateOrder(w, r, id)
 		case "DELETE":
-			o.deleteDeleteOrder(w, r)
+			o.deleteDeleteOrder(w, r, id)
 		default:
 			o.undefinedError(w, r)
 		}
 		return
 	}
 	if len(endpoint) == 4 && r.Method == "POST" && endpoint[3] == "close" {
-		o.postCloseOrder(w, r)
+		o.postCloseOrder(w, r, id)
 		return
 	}
 	o.undefinedError(w, r)
@@ -49,19 +50,19 @@ func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("getAllOrders"))
 }
 
-func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request) {
+func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
 	w.Write([]byte("getOrderById"))
 }
 
-func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request) {
+func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
 	w.Write([]byte("putUpdateOrder"))
 }
 
-func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request) {
+func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request, id string) {
 	w.Write([]byte("deleteDeleteOrder"))
 }
 
-func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request) {
+func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request, id string) {
 	w.Write([]byte("postCloseOrder"))
 }
 
