@@ -1,9 +1,9 @@
-package handler
+package server
 
 import "net/http"
 
-type InventoryHandler struct{}
+type inventoryHandler struct{}
 
-func (h *InventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is my innv page"))
+func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("asdasdasd"))
 }

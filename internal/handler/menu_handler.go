@@ -1,9 +1,7 @@
-package handler
+package server
 
 import "net/http"
 
-type MenuHandler struct{}
+type menuHandler struct{}
 
-func (h *MenuHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("This is my men page"))
-}
+func (m *menuHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
