@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"hot/config"
 	"hot/flags"
-	"hot/internal/server"
 	"hot/models"
 	"log/slog"
 	"os"
@@ -58,5 +57,5 @@ func main() {
 
 	}
 
-	server.Start(config.Addr, config.Dir)
+	// server.Start(config.Addr, config.Dir)
 }
