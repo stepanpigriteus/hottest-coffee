@@ -11,7 +11,6 @@ type orderHandler struct{}
 
 func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := strings.Split(r.URL.Path, "/")
-	method := r.Method
 	if r.URL.Path == "/orders/" {
 		switch r.Method {
 		case "POST":
@@ -25,7 +24,7 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	id := endpoint[2]
 	if len(endpoint) == 3 {
-		switch method {
+		switch r.Method {
 		case "GET":
 			o.getOrderById(w, r, id)
 		case "PUT":
