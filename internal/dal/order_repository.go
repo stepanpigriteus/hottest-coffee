@@ -8,6 +8,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 )
 
 type OrderInterface interface {
@@ -81,6 +83,28 @@ func (orders *Orders) DeleteOrderById(id string) error {
 	return nil
 }
 
+func (orders *Orders) PostOrder(order *models.Order) error {
+	if err := Open(orders); err != nil {
+		return err
+	}
+
+	order.ID = generateNewOrderID(orders.orders)
+	fmt.Println(order.ID)
+	for _, existingOrder := range orders.orders {
+		if existingOrder.ID == order.ID {
+			return models.ErrDuplicateOrderID
+		}
+	}
+
+	orders.orders = append(orders.orders, *order)
+
+	if err := saveOrdersToFile(orders); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // переделать
 func (orders *Orders) PostUpdate(item *models.Order) error {
 	if err := Open(orders); err != nil {
@@ -136,6 +160,10 @@ func Open(orders *Orders) error {
 		return err
 	}
 
+	if len(value) == 0 {
+		orders.orders = []models.Order{}
+		return nil
+	}
 	err = json.Unmarshal(value, &orders.orders)
 	if err != nil {
 		return err
@@ -166,4 +194,27 @@ func saveOrdersToFile(orders *Orders) error {
 	}
 
 	return nil
+}
+
+func generateNewOrderID(orders []models.Order) string {
+	var maxID int
+	re := regexp.MustCompile(`order(\d+)`)
+
+	if len(orders) == 0 {
+		return "order1"
+	}
+	// Ищем максимальный номер заказа
+	for _, order := range orders {
+		matches := re.FindStringSubmatch(order.ID)
+		if len(matches) > 1 {
+			id, err := strconv.Atoi(matches[1])
+			if err == nil && id > maxID {
+				maxID = id
+			}
+		}
+	}
+
+	// Генерируем новый ID с увеличенным числовым значением
+	newID := maxID + 1
+	return fmt.Sprintf("order%d", newID)
 }

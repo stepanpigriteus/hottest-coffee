@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hot/internal/dal"
+	"hot/models"
 	"net/http"
 	"strings"
 )
@@ -46,7 +47,21 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("postCreateOrder"))
+	var order models.Order
+	err := json.NewDecoder(r.Body).Decode(&order)
+	if err != nil {
+
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	dall := new(dal.Orders)
+	err = dall.PostOrder(&order)
+	if err != nil {
+		http.Error(w, "Error while creating order: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
