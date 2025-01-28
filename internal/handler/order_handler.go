@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"hot/models"
 	"net/http"
 	"strings"
 )
@@ -44,43 +45,45 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("postCreateOrder"))
+	var order models.Order
+	json.NewDecoder(r.Body).Decode(&order)
+	w.Header().Set("Content-Type", "application/json")
+	// response:=
+	// json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("getAllOrders"))
+	w.Header().Set("Content-Type", "application/json")
+	// response:=
+	// json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
-	response, err := myGet()
-	if err != nil {
-		w.Write([]byte("internal server error"))
-		return
-	}
 	w.Header().Set("Content-Type", "application/json")
-
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		w.Write([]byte("error encoding json"))
-		return
-	}
+	// response:=
+	// json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
-	w.Write([]byte("putUpdateOrder"))
+	var order models.Order
+	json.NewDecoder(r.Body).Decode(&order)
+	w.Header().Set("Content-Type", "application/json")
+	// response:=
+	// json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request, id string) {
-	w.Write([]byte("deleteDeleteOrder"))
+	w.Header().Set("Content-Type", "application/json")
+	// response:=
+	// json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request, id string) {
-	w.Write([]byte("postCloseOrder"))
+	w.Header().Set("Content-Type", "application/json")
+	// response:=
+	// json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
-}
-
-func myGet() (string, error) {
-	return "response", nil
 }
