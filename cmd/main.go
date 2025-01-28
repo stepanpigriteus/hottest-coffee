@@ -3,14 +3,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log/slog"
-	"os"
-	"path/filepath"
-
 	"hot/config"
 	"hot/internal/pkg/flags"
 	"hot/internal/pkg/server"
 	"hot/models"
+	"log/slog"
+	"os"
+	"path/filepath"
 )
 
 func main() {

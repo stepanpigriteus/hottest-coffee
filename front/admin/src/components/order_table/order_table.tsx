@@ -23,7 +23,7 @@ export default function OrderTable() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch("http://localhost:8080/orders");
+                const response = await fetch("http://localhost:8081/orders");
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }

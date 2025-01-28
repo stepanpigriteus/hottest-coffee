@@ -1,9 +1,9 @@
 package server
 
 import (
-	"net/http"
-
 	"hot/internal/handler"
+	"log"
+	"net/http"
 )
 
 func Start(port int, dir string) {
@@ -15,5 +15,8 @@ func Start(port int, dir string) {
 	mux.Handle("/reports/total-sales", &handler.AgregationHandler{})
 	mux.Handle("/reports/popular-items", &handler.AgregationHandler{})
 	mux.HandleFunc("/", handler.BadRequest)
-	http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8081", mux)
+	if err != nil {
+		log.Fatal("Error starting server: ", err)
+	}
 }
