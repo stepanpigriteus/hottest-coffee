@@ -1,1 +1,1 @@
-[{"order_id":"order1","customer_name":"Jaohn Doe","items":[{"product_id":"espresso","quantity":2},{"product_id":"croissant","quantity":1}],"status":"","created_at":""},{"order_id":"order2","customer_name":"Jaohn Doe","items":[{"product_id":"espresso","quantity":2},{"product_id":"croissant","quantity":1}],"status":"","created_at":""}]
+[{"order_id":"order1","customer_name":"Jaohn Doe","items":[{"product_id":"espresso","quantity":2},{"product_id":"croissant","quantity":2}],"status":"","created_at":""}]

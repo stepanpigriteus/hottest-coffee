@@ -94,7 +94,22 @@ func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id s
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
-	w.Write([]byte("putUpdateOrder"))
+	var order models.Order
+	err := json.NewDecoder(r.Body).Decode(&order)
+	if err != nil {
+
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	dall := new(dal.Orders)
+	err = dall.PutUpdate(&order, id )
+	if err != nil {
+		http.Error(w, "Error while creating order: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request, id string) {

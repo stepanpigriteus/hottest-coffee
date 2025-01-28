@@ -105,24 +105,31 @@ func (orders *Orders) PostOrder(order *models.Order) error {
 	return nil
 }
 
-// переделать
-func (orders *Orders) PostUpdate(item *models.Order) error {
+// сломал и не понял где!
+func (orders *Orders) PutUpdate(item *models.Order, id string) error {
 	if err := Open(orders); err != nil {
+		fmt.Println("!")
 		return err
 	}
 
-	for _, order := range orders.orders {
-		if order.ID == item.ID {
-			return models.ErrDuplicateOrderID
+	for i, order := range orders.orders {
+		if order.ID == id {
+
+			orders.orders[i].ID = id
+			orders.orders[i].CustomerName = item.CustomerName
+			orders.orders[i].Items = item.Items
+			orders.orders[i].Status = item.Status
+			orders.orders[i].CreatedAt = item.CreatedAt
+
+			if err := saveOrdersToFile(orders); err != nil {
+				return err
+			}
+
+			return nil
 		}
 	}
-	orders.orders = append(orders.orders, *item)
 
-	if err := saveOrdersToFile(orders); err != nil {
-		return err
-	}
-
-	return nil
+	return models.ErrOrderNotFound
 }
 
 func (orders *Orders) CloseOrder(id string) (models.Order, error) {
