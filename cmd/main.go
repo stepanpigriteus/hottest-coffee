@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	handler "hot/internal/handlers"
 	"hot/internal/pkg/config"
 	"hot/internal/pkg/flags"
-	"hot/internal/pkg/server"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -15,6 +15,7 @@ func main() {
 	config.Logger = config.NewLogger()
 	fmt.Println(config.Dir)
 	// папка мне запили!
+
 	err := os.Mkdir(config.Dir, 0o777)
 	if err != nil {
 		if os.IsExist(err) {
@@ -39,5 +40,5 @@ func main() {
 
 	}
 
-	server.Start(config.Addr, config.Dir)
+	handler.StartServer()
 }
