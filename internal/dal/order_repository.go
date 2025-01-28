@@ -2,6 +2,7 @@ package dal
 
 import (
 	"encoding/json"
+	"fmt"
 	"hot/internal/pkg/config"
 	"hot/models"
 	"io"
@@ -23,11 +24,15 @@ type Orders struct {
 }
 
 func (orders *Orders) GetOrderById(id string) (models.Order, error) {
-	if _, err := Open(orders); err != nil {
+	fmt.Println(id)
+	if err := Open(orders); err != nil {
+		fmt.Println(err)
 		return models.Order{}, err
 	}
+
 	for _, el := range orders.orders {
 		if el.ID == id {
+
 			item := &models.Order{
 				ID:           el.ID,
 				CustomerName: el.CustomerName,
@@ -43,7 +48,7 @@ func (orders *Orders) GetOrderById(id string) (models.Order, error) {
 }
 
 func (orders *Orders) GetOrders() ([]models.Order, error) {
-	if _, err := Open(orders); err != nil {
+	if err := Open(orders); err != nil {
 		return nil, err
 	}
 
@@ -51,7 +56,7 @@ func (orders *Orders) GetOrders() ([]models.Order, error) {
 }
 
 func (orders *Orders) DeleteOrderById(id string) error {
-	if _, err := Open(orders); err != nil {
+	if err := Open(orders); err != nil {
 		return err
 	}
 
@@ -68,7 +73,7 @@ func (orders *Orders) DeleteOrderById(id string) error {
 	}
 
 	orders.orders = append(orders.orders[:indexToDelete], orders.orders[indexToDelete+1:]...)
-
+	fmt.Println(orders.orders)
 	if err := saveOrdersToFile(orders); err != nil {
 		return err
 	}
@@ -76,8 +81,9 @@ func (orders *Orders) DeleteOrderById(id string) error {
 	return nil
 }
 
-func (orders *Orders) PostOrder(item *models.Order) error {
-	if _, err := Open(orders); err != nil {
+// переделать
+func (orders *Orders) PostUpdate(item *models.Order) error {
+	if err := Open(orders); err != nil {
 		return err
 	}
 
@@ -95,53 +101,58 @@ func (orders *Orders) PostOrder(item *models.Order) error {
 	return nil
 }
 
-func (orders *Orders) CloseOrder(id string) error {
-	if _, err := Open(orders); err != nil {
-		return err
+func (orders *Orders) CloseOrder(id string) (models.Order, error) {
+	if err := Open(orders); err != nil {
+		return models.Order{}, err
 	}
 
 	for i, el := range orders.orders {
 		if el.ID == id {
+
 			orders.orders[i].Status = "closed"
+
 			if err := saveOrdersToFile(orders); err != nil {
-				return err
+				return models.Order{}, err
 			}
-			return nil
+
+			return orders.orders[i], nil
 		}
 	}
 
-	return models.ErrOrderNotFound
+	return models.Order{}, models.ErrOrderNotFound
 }
 
-func Open(orders *Orders) (Orders, error) {
+func Open(orders *Orders) error {
 	path := filepath.Join(config.Dir, "orders.json")
 
 	file, err := os.Open(path)
 	if err != nil {
-		return Orders{}, err
+		return err
 	}
 	defer file.Close()
 
 	value, err := io.ReadAll(file)
 	if err != nil {
-		return Orders{}, err
+		return err
 	}
 
-	err = json.Unmarshal(value, &orders)
+	err = json.Unmarshal(value, &orders.orders)
 	if err != nil {
-		return Orders{}, err
+		return err
 	}
 
-	return *orders, nil
+	return nil
 }
 
 func saveOrdersToFile(orders *Orders) error {
 	path := filepath.Join(config.Dir, "orders.json")
 
-	data, err := json.Marshal(orders)
+	data, err := json.Marshal(orders.orders)
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("Serialized data: %s\n", string(data))
 
 	file, err := os.Create(path)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 
 func Flags() (int, string) {
 	help := flag.Bool("help", false, "help panel")
-	port := flag.Int("port", 8080, "Port number")
+	port := flag.Int("port", 8083, "Port number")
 	dir := flag.String("dir", "data", "Path to the directory")
 	flag.Parse()
 
