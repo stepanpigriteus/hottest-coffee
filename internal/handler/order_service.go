@@ -33,5 +33,4 @@ func (h *OrdersHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetOrders(w http.ResponseWriter, r *http.Request) {
-
 }

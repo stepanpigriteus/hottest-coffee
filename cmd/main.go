@@ -1,11 +1,43 @@
 package main
 
 import (
+	"fmt"
+	"hot/internal/pkg/config"
 	"hot/internal/pkg/flags"
 	"hot/internal/pkg/server"
+	"log/slog"
+	"os"
+	"path/filepath"
 )
 
 func main() {
-	port, dir := flags.Flags()
-	server.Start(port, dir)
+	config.Addr, config.Dir = flags.Flags()
+	config.Logger = config.NewLogger()
+	fmt.Println(config.Dir)
+	// папка мне запили!
+	err := os.Mkdir(config.Dir, 0o777)
+	if err != nil {
+		if os.IsExist(err) {
+			config.Logger.Info("Directory exists", slog.String("directory", config.Dir))
+		} else {
+			config.Logger.Error("Error creating directory", "directory", config.Dir, "error", err)
+			os.Exit(1)
+		}
+	}
+	files := []string{"aggregations.json", "inventory.json", "menu_items.json", "orders.json"}
+
+	for _, r := range files {
+		path := filepath.Join(config.Dir, r)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			file, err := os.Create(path)
+			if err != nil {
+				config.Logger.Error("Error creating file", slog.String("file", r), slog.Any("error", err))
+				os.Exit(1)
+			}
+			defer file.Close()
+		}
+
+	}
+
+	server.Start(config.Addr, config.Dir)
 }
