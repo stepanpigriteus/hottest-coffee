@@ -2,6 +2,7 @@ package dal
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hot/internal/pkg/config"
 	"hot/models"
@@ -160,14 +161,24 @@ func saveMenuToFile(menuItems *MenuItems) error {
 	return nil
 }
 
-func FindPosition(menuItems *MenuItems, id string) (bool, error) {
-	if err := OpenMenu(menuItems); err != nil {
-		return false, err
+func FindPosition(id string) ([]MenuItems, error) {
+	path := filepath.Join(config.Dir, "menu_items.json")
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
 	}
-	for _, el := range menuItems.menu {
-		if el.ID == id {
-			return true, nil
-		}
+	defer file.Close()
+
+	value, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
 	}
-	return false, nil
+	var menuItems []MenuItems
+	err = json.Unmarshal(value, &menuItems)
+	if err != nil {
+		return nil, err
+	}
+
+	return menuItems, errors.New("item not found")
 }
