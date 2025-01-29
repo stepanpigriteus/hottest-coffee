@@ -159,3 +159,15 @@ func saveMenuToFile(menuItems *MenuItems) error {
 
 	return nil
 }
+
+func FindPosition(menuItems *MenuItems, id string) (bool, error) {
+	if err := OpenMenu(menuItems); err != nil {
+		return false, err
+	}
+	for _, el := range menuItems.menu {
+		if el.ID == id {
+			return true, nil
+		}
+	}
+	return false, nil
+}
