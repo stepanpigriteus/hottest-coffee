@@ -160,23 +160,23 @@ func saveMenuToFile(menuItems *MenuItems) error {
 	return nil
 }
 
-func FindPosition() ([]MenuItems, error) {
+func GetMenu() (MenuItems, error) {
 	path := filepath.Join(config.Dir, "menu_items.json")
-
+	fmt.Println("!")
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, err
+		return MenuItems{}, err
 	}
 	defer file.Close()
 
 	value, err := io.ReadAll(file)
 	if err != nil {
-		return nil, err
+		return MenuItems{}, err
 	}
-	var menuItems []MenuItems
-	err = json.Unmarshal(value, &menuItems)
+	var menuItems MenuItems
+	err = json.Unmarshal(value, &menuItems.menu)
 	if err != nil {
-		return nil, err
+		return MenuItems{}, err
 	}
 
 	return menuItems, nil

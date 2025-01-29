@@ -81,6 +81,7 @@ func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
 	dall := new(dal.Orders)
+
 	i, err := dall.GetOrderById(id)
 	if err != nil {
 
