@@ -2,18 +2,18 @@ package dal
 
 import (
 	"encoding/json"
-	"fmt"
-	"hot/internal/pkg/config"
-	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
+
+	"hot/internal/pkg/config"
+	"hot/models"
 )
 
 type ItemInterface interface {
 	GetItemById(id string) (models.InventoryItem, error)
 	DeleteItemById(id string) error
-	PutItemById(id, name, unit string, quantity float64) error
+	PutItemById(item models.InventoryItem, id string) error
 	GetItems() ([]models.InventoryItem, error)
 	PostItem(item *models.InventoryItem) error
 }
@@ -23,12 +23,10 @@ type Items struct {
 }
 
 func (items *Items) GetItemById(id string) (models.InventoryItem, error) {
-	// Открываем файл с инвентарем
 	if err := OpenItems(items); err != nil {
 		return models.InventoryItem{}, err
 	}
 
-	// Ищем товар по ID
 	for _, item := range items.inventory {
 		if item.IngredientID == id {
 			return item, nil
@@ -100,8 +98,10 @@ func (items *Items) PutItemById(o models.InventoryItem, id string) error {
 
 			items.inventory[i].Name = o.Name
 			items.inventory[i].Unit = o.Unit
+			if o.Quantity < 0 || o.Quantity > 10000 {
+				return models.ErrInvalidMenuItem
+			}
 			items.inventory[i].Quantity = o.Quantity
-			fmt.Println(items.inventory[i], item.Quantity)
 			if err := saveItemsToFile(items); err != nil {
 				return err
 			}
@@ -172,7 +172,6 @@ func GetInventory() (Items, error) {
 	}
 	var items Items
 	err = json.Unmarshal(value, &items.inventory)
-
 	if err != nil {
 		return Items{}, err
 	}

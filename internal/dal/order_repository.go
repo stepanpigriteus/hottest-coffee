@@ -3,22 +3,23 @@ package dal
 import (
 	"encoding/json"
 	"fmt"
-	"hot/internal/pkg/config"
-	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
+
+	"hot/internal/pkg/config"
+	"hot/models"
 )
 
 type OrderInterface interface {
 	GetOrderById(id string) (models.Order, error)
 	DeleteOrderById(id string) error
-	PutOrderById(id, customerName, status, createdAt string, items []models.OrderItem) error
+	PutOrderById(items *models.Order, id string) error
 	GetOrders() ([]models.Order, error)
 	PostOrder(item *models.Order) error
-	CloseOrder(id string) error
+	CloseOrder(id string) (models.Order, error)
 }
 
 type Orders struct {
@@ -75,7 +76,7 @@ func (orders *Orders) DeleteOrderById(id string) error {
 	}
 
 	orders.orders = append(orders.orders[:indexToDelete], orders.orders[indexToDelete+1:]...)
-	fmt.Println(orders.orders)
+
 	if err := saveOrdersToFile(orders); err != nil {
 		return err
 	}
@@ -84,12 +85,18 @@ func (orders *Orders) DeleteOrderById(id string) error {
 }
 
 func (orders *Orders) PostOrder(order *models.Order) error {
+	err := CheckOrder(order)
+	if err != nil {
+		return err
+	}
+
 	if err := Open(orders); err != nil {
 		return err
 	}
 
 	order.ID = generateNewOrderID(orders.orders)
-	fmt.Println(order.ID)
+	order.Status = "open"
+
 	for _, existingOrder := range orders.orders {
 		if existingOrder.ID == order.ID {
 			return models.ErrDuplicateOrderID
@@ -105,14 +112,28 @@ func (orders *Orders) PostOrder(order *models.Order) error {
 	return nil
 }
 
-func (orders *Orders) PutUpdate(item *models.Order, id string) error {
+func (orders *Orders) PutOrderById(item *models.Order, id string) error {
+	err := CheckOrder(item)
+
+	isExist := false
+	if err != nil {
+		return err
+	}
+
 	if err := Open(orders); err != nil {
-		fmt.Println("!")
 		return err
 	}
 
 	for i, order := range orders.orders {
+
 		if order.ID == id {
+			isExist = true
+			for _, r := range item.Items {
+				if r.Quantity < 0 || r.Quantity > 10000 {
+					err := fmt.Errorf("Incuficient: %s", r.ProductID)
+					return err
+				}
+			}
 
 			orders.orders[i].ID = id
 			orders.orders[i].CustomerName = item.CustomerName
@@ -125,6 +146,10 @@ func (orders *Orders) PutUpdate(item *models.Order, id string) error {
 			}
 
 			return nil
+		}
+
+		if !isExist {
+			return models.ErrOrderNotFound
 		}
 	}
 
@@ -226,7 +251,7 @@ func generateNewOrderID(orders []models.Order) string {
 
 func GetOrders() (Orders, error) {
 	path := filepath.Join(config.Dir, "orders.json")
-	fmt.Println("!")
+
 	file, err := os.Open(path)
 	if err != nil {
 		return Orders{}, err
@@ -246,5 +271,62 @@ func GetOrders() (Orders, error) {
 	return orders, nil
 }
 
-func PositionIngridient(id string) {
+func CheckOrder(order *models.Order) error {
+	menu := new(MenuItems)
+	menuItems, err := menu.GetMenuItems()
+	if err != nil {
+		return err
+	}
+	inventory := new(Items)
+	invItems, err := inventory.GetItems()
+	if err != nil {
+		return err
+	}
+	if err := ValidateOrderIngredients(order, menuItems, invItems); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	for _, item := range order.Items {
+		if item.ProductID == "" || item.Quantity <= 0 {
+			err := fmt.Errorf("Incorrect value in order: %s quantity %d", item.ProductID, item.Quantity)
+			return err
+		}
+	}
+	return nil
+}
+
+func ValidateOrderIngredients(order *models.Order, menuItems []models.MenuItem, inventory []models.InventoryItem) error {
+	inventoryMap := make(map[string]int)
+	for _, item := range inventory {
+		inventoryMap[item.IngredientID] = int(item.Quantity)
+	}
+
+	menuMap := make(map[string]models.MenuItem)
+
+	for _, item := range menuItems {
+		menuMap[item.ID] = item
+	}
+
+	for _, orderItem := range order.Items {
+
+		menuItem, exists := menuMap[orderItem.ProductID]
+
+		if !exists {
+			err := fmt.Errorf("product not found: %s", orderItem.ProductID)
+			return err
+		}
+
+		for _, ingredient := range menuItem.Ingredients {
+			requiredQty := int(ingredient.Quantity) * orderItem.Quantity
+			currentQty, exists := inventoryMap[ingredient.IngredientID]
+			if !exists || currentQty < requiredQty {
+				return models.ErrInsufficientIngredients
+			}
+
+			inventoryMap[ingredient.IngredientID] -= requiredQty
+		}
+	}
+
+	return nil
 }

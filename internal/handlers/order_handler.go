@@ -2,11 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
-	"hot/internal/dal"
-	"hot/models"
 	"net/http"
 	"strings"
+
+	"hot/internal/service"
+	"hot/models"
 )
 
 type orderHandler struct{}
@@ -50,89 +50,99 @@ func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
 	var order models.Order
 	err := json.NewDecoder(r.Body).Decode(&order)
 	if err != nil {
-
 		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	dall := new(dal.Orders)
-	err = dall.PostOrder(&order)
-	if err != nil {
-		http.Error(w, "Error while creating order: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	status, msg := service.PostOrder(&order)
+
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	response := make(map[string]string)
+	if status == http.StatusCreated {
+		response["message"] = msg
+	} else {
+		response["error"] = msg
+	}
+
+	json.NewEncoder(w).Encode(response)
 }
 
 func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
-	dall := new(dal.Orders)
-	i, err := dall.GetOrders()
-	if err != nil {
+	orders, status := service.GetOrders()
 
-		http.Error(w, fmt.Sprint("Orders  %s not found"), http.StatusNotFound)
+	w.WriteHeader(status)
+	if status != http.StatusOK {
+
+		w.Write([]byte("{\n\t\"error\": \"Internal server occurred\"\n}")) // TODO: Change(?)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(i); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+
+	byteValue, err := json.MarshalIndent(orders, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteValue)
 	}
 }
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.Orders)
+	order, status, msg := service.GetOrderById(id)
 
-	i, err := dall.GetOrderById(id)
-	if err != nil {
-
-		http.Error(w, fmt.Sprintf("Order with ID %s not found", id), http.StatusNotFound)
+	if msg != "" {
+		w.WriteHeader(status)
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(i); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	byteValue, err := json.MarshalIndent(order, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteValue)
 	}
+
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
 	var order models.Order
-	err := json.NewDecoder(r.Body).Decode(&order)
-	if err != nil {
-
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
-		return
+	json.NewDecoder(r.Body).Decode(&order)
+	status, msg := service.PutOrderById(&order, id)
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"" + msg + "\"\n}"))
 	}
-
-	dall := new(dal.Orders)
-	err = dall.PutUpdate(&order, id)
-	if err != nil {
-		http.Error(w, "Error while creating order: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.Orders)
-	err := dall.DeleteOrderById(id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("The order %s  was not deleted", id), http.StatusBadRequest)
-		return
+	status, msg := service.DeleteOrderById(id)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.Orders)
-	i, err := dall.CloseOrder(id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("The order %s  was not deleted", id), http.StatusBadRequest)
-		return
+	status, msg := service.CloseOrder(id)
+
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(i); err != nil {
+
+	if err := json.NewEncoder(w).Encode("order complete closed"); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
+	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) undefinedError(w http.ResponseWriter, r *http.Request) {

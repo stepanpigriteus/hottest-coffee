@@ -1,16 +1,19 @@
 package service
 
 import (
+	"fmt"
+	"net/http"
+
 	"hot/internal/dal"
 	"hot/models"
-	"net/http"
 )
 
 func GetMenuItemById(id string) (models.MenuItem, int, string) {
 	var menuRepo dal.MenuInterface = new(dal.MenuItems)
 	menuItem, err := menuRepo.GetMenuItemById(id)
+	fmt.Println(err)
 	if err != nil {
-		if err == models.ErrMenuItemNotFound {
+		if err == models.ErrMenuItemNotFound || err == models.ErrItemNotFound {
 			return models.MenuItem{}, http.StatusNotFound, err.Error()
 		}
 		return models.MenuItem{}, http.StatusInternalServerError, ""
@@ -32,6 +35,46 @@ func PutUpdateItemBy(menuItem *models.MenuItem) (int, string) {
 	if !ValidItem(menuItem) {
 		return http.StatusBadRequest, models.ErrInvalidMenuItem.Error()
 	}
+	var menuRepo dal.MenuInterface = new(dal.MenuItems)
+	err := menuRepo.PutMenuItemById(menuItem, menuItem.ID)
+	if err != nil {
+		if err == models.ErrMenuItemNotFound {
+			return http.StatusNotFound, err.Error()
+		}
+		return http.StatusInternalServerError, ""
+	}
+
+	return http.StatusOK, ""
+}
+
+func DeleteMenuItemById(id string) (int, string) {
+	var menuRepo dal.MenuInterface = new(dal.MenuItems)
+	err := menuRepo.DeleteMenuItemById(id)
+	if err != nil {
+		if err == models.ErrMenuItemNotFound {
+			return http.StatusNotFound, err.Error()
+		}
+		return http.StatusInternalServerError, ""
+	}
+
+	return http.StatusOK, ""
+}
+
+func PostMenuItem(menuItem *models.MenuItem) (int, string) {
+	if !ValidItem(menuItem) {
+		return http.StatusBadRequest, models.ErrInvalidMenuItem.Error()
+	}
+
+	var menuRepo dal.MenuInterface = new(dal.MenuItems)
+	err := menuRepo.PostMenuItem(menuItem)
+	if err != nil {
+		if err == models.ErrDuplicateMenuItemID {
+			return http.StatusBadRequest, err.Error()
+		}
+		return http.StatusInternalServerError, ""
+	}
+
+	return http.StatusCreated, ""
 }
 
 func ValidItem(menuItem *models.MenuItem) bool {

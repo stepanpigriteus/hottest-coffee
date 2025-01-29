@@ -2,12 +2,11 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
-	"hot/internal/dal"
-	"hot/internal/service"
-	"hot/models"
 	"net/http"
 	"strings"
+
+	"hot/internal/service"
+	"hot/models"
 )
 
 type menuHandler struct{}
@@ -48,15 +47,17 @@ func (m *menuHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 	var menuItem models.MenuItem
 	err := json.NewDecoder(r.Body).Decode(&menuItem)
 	if err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\n\t\"error\": \"Request body does not match json format\"\n}"))
 		return
 	}
+	defer r.Body.Close()
 
-	dall := new(dal.MenuItems)
-	err = dall.PostMenuItem(&menuItem)
-	if err != nil {
-		http.Error(w, "Error while creating order: "+err.Error(), http.StatusInternalServerError)
-		return
+	status, msg := service.PostMenuItem(&menuItem)
+
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
@@ -81,7 +82,6 @@ func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 
 func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
 	menuItem, status, msg := service.GetMenuItemById(id)
-	fmt.Println(menuItem, status, msg)
 
 	if msg != "" {
 		w.WriteHeader(status)
@@ -104,27 +104,20 @@ func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id str
 func (m *menuHandler) putUpdateItemById(w http.ResponseWriter, r *http.Request, id string) {
 	var menuItem models.MenuItem
 	json.NewDecoder(r.Body).Decode(&menuItem)
-	dall := new(dal.MenuItems)
-	err := dall.PutMenuItemById(&menuItem, id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("MenuItem with ID %s not found", id), http.StatusNotFound)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		http.Error(w, "Error while creating/update menuItem: "+err.Error(), http.StatusInternalServerError)
-		return
+	status, msg := service.PutUpdateItemBy(&menuItem)
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (m *menuHandler) deleteDeleteItemById(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.MenuItems)
-	err := dall.DeleteMenuItemById(id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("The menuItem %s  was not deleted", id), http.StatusBadRequest)
-		return
+	status, msg := service.DeleteMenuItemById(id)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
 	w.Header().Set("Content-Type", "application/json")
 }

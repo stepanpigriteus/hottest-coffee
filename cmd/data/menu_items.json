@@ -3,7 +3,7 @@
         "product_id": "latte",
         "name": "Caffe Latte",
         "description": "Espresso with steamed milk",
-        "price": 3.5,
+        "price": 3.50,
         "ingredients": [
             {
                 "ingredient_id": "espresso_shot",
@@ -19,7 +19,7 @@
         "product_id": "muffin",
         "name": "Blueberry Muffin",
         "description": "Freshly baked muffin with blueberries",
-        "price": 2,
+        "price": 2.00,
         "ingredients": [
             {
                 "ingredient_id": "flour",
@@ -32,6 +32,18 @@
             {
                 "ingredient_id": "sugar",
                 "quantity": 30
+            }
+        ]
+    },
+    {
+        "product_id": "espresso",
+        "name": "Espresso",
+        "description": "Strong and bold coffee",
+        "price": 2.50,
+        "ingredients": [
+            {
+                "ingredient_id": "espresso_shot",
+                "quantity": 1
             }
         ]
     }

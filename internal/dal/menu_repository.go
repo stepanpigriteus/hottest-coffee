@@ -3,11 +3,12 @@ package dal
 import (
 	"encoding/json"
 	"fmt"
-	"hot/internal/pkg/config"
-	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
+
+	"hot/internal/pkg/config"
+	"hot/models"
 )
 
 type MenuInterface interface {
@@ -49,7 +50,6 @@ func (menuItems *MenuItems) DeleteMenuItemById(id string) error {
 	if err := OpenMenu(menuItems); err != nil {
 		return err
 	}
-
 	var indexToDelete int = -1
 
 	for i, el := range menuItems.menu {

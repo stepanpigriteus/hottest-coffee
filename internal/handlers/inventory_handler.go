@@ -3,10 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"hot/internal/dal"
-	"hot/models"
 	"net/http"
 	"strings"
+
+	"hot/internal/dal"
+	"hot/internal/service"
+	"hot/models"
 )
 
 type inventoryHandler struct{}
@@ -61,7 +63,7 @@ func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 func (i *inventoryHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 	dall := new(dal.Items)
 	item, err := dall.GetItems()
-	t, err  := dal.GetInventory()
+	t, err := dal.GetInventory()
 	fmt.Println(t)
 	if err != nil {
 
@@ -76,14 +78,19 @@ func (i *inventoryHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (i *inventoryHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.Items)
-	item, err := dall.GetItemById(id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Item with ID %s not found", id), http.StatusNotFound)
+	inventoryItem, status, msg := service.GetItemById(id)
+	if msg != "" {
+		w.WriteHeader(status)
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 		return
 	}
-	if err := json.NewEncoder(w).Encode(item); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	byteValue, err := json.MarshalIndent(inventoryItem, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteValue)
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
