@@ -67,7 +67,6 @@ func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
 func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
 	dall := new(dal.Orders)
 	i, err := dall.GetOrders()
-
 	if err != nil {
 
 		http.Error(w, fmt.Sprint("Orders  %s not found"), http.StatusNotFound)

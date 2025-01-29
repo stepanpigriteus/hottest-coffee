@@ -3,14 +3,13 @@ package dal
 import (
 	"encoding/json"
 	"fmt"
+	"hot/internal/pkg/config"
+	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
-
-	"hot/internal/pkg/config"
-	"hot/models"
 )
 
 type OrderInterface interface {
@@ -210,7 +209,7 @@ func generateNewOrderID(orders []models.Order) string {
 	if len(orders) == 0 {
 		return "order1"
 	}
-	// Ищем максимальный номер заказа
+
 	for _, order := range orders {
 		matches := re.FindStringSubmatch(order.ID)
 		if len(matches) > 1 {
@@ -221,7 +220,28 @@ func generateNewOrderID(orders []models.Order) string {
 		}
 	}
 
-	// Генерируем новый ID с увеличенным числовым значением
 	newID := maxID + 1
 	return fmt.Sprintf("order%d", newID)
+}
+
+func GetOrders() (Orders, error) {
+	path := filepath.Join(config.Dir, "orders.json")
+	fmt.Println("!")
+	file, err := os.Open(path)
+	if err != nil {
+		return Orders{}, err
+	}
+	defer file.Close()
+
+	value, err := io.ReadAll(file)
+	if err != nil {
+		return Orders{}, err
+	}
+	var orders Orders
+	err = json.Unmarshal(value, &orders.orders)
+	if err != nil {
+		return Orders{}, err
+	}
+
+	return orders, nil
 }
