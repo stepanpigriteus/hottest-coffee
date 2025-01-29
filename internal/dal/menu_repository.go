@@ -3,18 +3,17 @@ package dal
 import (
 	"encoding/json"
 	"fmt"
+	"hot/internal/pkg/config"
+	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
-
-	"hot/internal/pkg/config"
-	"hot/models"
 )
 
 type MenuInterface interface {
 	GetMenuItemById(id string) (models.MenuItem, error)
 	DeleteMenuItemById(id string) error
-	PutMenuItemById(id, name, description string, price float64, ingredients []models.MenuItemIngredient) error
+	PutMenuItemById(o *models.MenuItem, id string) error
 	GetMenuItems() ([]models.MenuItem, error)
 	PostMenuItem(menuItem *models.MenuItem) error
 }

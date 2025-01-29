@@ -3,11 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
-
 	"hot/internal/dal"
 	"hot/models"
+	"net/http"
+	"strings"
 )
 
 type orderHandler struct{}
@@ -66,7 +65,6 @@ func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
-
 	dall := new(dal.Orders)
 	i, err := dall.GetOrders()
 	if err != nil {

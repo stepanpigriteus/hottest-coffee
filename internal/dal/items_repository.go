@@ -2,6 +2,7 @@ package dal
 
 import (
 	"encoding/json"
+	"fmt"
 	"hot/internal/pkg/config"
 	"hot/models"
 	"io"
@@ -38,22 +39,18 @@ func (items *Items) GetItemById(id string) (models.InventoryItem, error) {
 }
 
 func (items *Items) GetItems() ([]models.InventoryItem, error) {
-	// Открываем файл с инвентарем
 	if err := OpenItems(items); err != nil {
 		return nil, err
 	}
 
-	// Возвращаем все товары
 	return items.inventory, nil
 }
 
 func (items *Items) DeleteItemById(id string) error {
-	// Открываем файл с инвентарем
 	if err := OpenItems(items); err != nil {
 		return err
 	}
 
-	// Ищем индекс товара для удаления
 	var indexToDelete int = -1
 	for i, item := range items.inventory {
 		if item.IngredientID == id {
@@ -62,15 +59,12 @@ func (items *Items) DeleteItemById(id string) error {
 		}
 	}
 
-	// Если товар не найден
 	if indexToDelete == -1 {
 		return models.ErrItemNotFound
 	}
 
-	// Удаляем товар
 	items.inventory = append(items.inventory[:indexToDelete], items.inventory[indexToDelete+1:]...)
 
-	// Сохраняем обновленный инвентарь в файл
 	if err := saveItemsToFile(items); err != nil {
 		return err
 	}
@@ -79,44 +73,35 @@ func (items *Items) DeleteItemById(id string) error {
 }
 
 func (items *Items) PostItem(item *models.InventoryItem) error {
-	// Открываем файл с инвентарем
 	if err := OpenItems(items); err != nil {
 		return err
 	}
 
-	// Проверяем, есть ли товар с таким ID
 	for _, existingItem := range items.inventory {
 		if existingItem.IngredientID == item.IngredientID {
 			return models.ErrDuplicateInventoryItemID
 		}
 	}
 
-	// Добавляем новый товар
 	items.inventory = append(items.inventory, *item)
-
-	// Сохраняем обновленный инвентарь в файл
 	if err := saveItemsToFile(items); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func (items *Items) PutItemById(id, name, unit string, quantity float64) error {
-	// Открываем файл с инвентарем
+func (items *Items) PutItemById(o models.InventoryItem, id string) error {
 	if err := OpenItems(items); err != nil {
 		return err
 	}
 
-	// Ищем товар по ID
 	for i, item := range items.inventory {
 		if item.IngredientID == id {
-			// Обновляем данные товара
-			items.inventory[i].Name = name
-			items.inventory[i].Unit = unit
-			items.inventory[i].Quantity = quantity
 
-			// Сохраняем обновленный инвентарь в файл
+			items.inventory[i].Name = o.Name
+			items.inventory[i].Unit = o.Unit
+			items.inventory[i].Quantity = o.Quantity
+			fmt.Println(items.inventory[i], item.Quantity)
 			if err := saveItemsToFile(items); err != nil {
 				return err
 			}
@@ -131,13 +116,11 @@ func (items *Items) PutItemById(id, name, unit string, quantity float64) error {
 func OpenItems(items *Items) error {
 	path := filepath.Join(config.Dir, "inventory.json")
 
-
 	file, err := os.Open(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
-
 
 	value, err := io.ReadAll(file)
 	if err != nil {
@@ -155,7 +138,6 @@ func OpenItems(items *Items) error {
 func saveItemsToFile(items *Items) error {
 	path := filepath.Join(config.Dir, "inventory.json")
 
-
 	data, err := json.Marshal(items.inventory)
 	if err != nil {
 		return err
@@ -167,7 +149,6 @@ func saveItemsToFile(items *Items) error {
 	}
 	defer file.Close()
 
-	// Записываем данные в файл
 	_, err = file.Write(data)
 	if err != nil {
 		return err
