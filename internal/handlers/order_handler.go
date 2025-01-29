@@ -11,6 +11,10 @@ import (
 
 type orderHandler struct{}
 
+type Response struct {
+	Message string `json:"message"`
+}
+
 func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := strings.Split(r.URL.Path, "/")
 	method := r.Method
@@ -39,6 +43,7 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
 	if len(endpoint) == 4 && r.Method == "POST" && endpoint[3] == "close" {
 		o.postCloseOrder(w, r, id)
 		return
@@ -133,16 +138,14 @@ func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request,
 
 func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request, id string) {
 	status, msg := service.CloseOrder(id)
+	response := Response{Message: msg}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
-	}
 
-	if err := json.NewEncoder(w).Encode("order complete closed"); err != nil {
+	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Error encoding response", http.StatusInternalServerError)
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) undefinedError(w http.ResponseWriter, r *http.Request) {

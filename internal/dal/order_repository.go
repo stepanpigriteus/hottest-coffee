@@ -165,11 +165,9 @@ func (orders *Orders) CloseOrder(id string) (models.Order, error) {
 		if el.ID == id {
 
 			orders.orders[i].Status = "closed"
-
 			if err := saveOrdersToFile(orders); err != nil {
 				return models.Order{}, err
 			}
-
 			return orders.orders[i], nil
 		}
 	}

@@ -94,8 +94,9 @@ func PostOrder(item *models.Order) (int, string) {
 
 func CloseOrder(id string) (int, string) {
 	var orderRepo dal.OrderInterface = new(dal.Orders)
-	_, err := orderRepo.CloseOrder(id)
+	order, err := orderRepo.CloseOrder(id)
 	if err != nil {
+
 		if err == models.ErrOrderNotFound {
 			return http.StatusNotFound, err.Error()
 		} else if err == models.ErrOrderClosed {
@@ -105,7 +106,9 @@ func CloseOrder(id string) (int, string) {
 		}
 		return http.StatusInternalServerError, ""
 	}
-
+	if order.Status == "closed" {
+		return http.StatusOK, "Order successfully closed"
+	}
 	return http.StatusOK, ""
 }
 

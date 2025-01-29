@@ -1,4 +1,9 @@
 {
-	"total_sales": 5,
-	"item_sales": []
+	"total_sales": 8,
+	"item_sales": [
+		{
+			"product_id": "muffin",
+			"quantity_sold": 4
+		}
+	]
 }
