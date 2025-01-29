@@ -62,17 +62,20 @@ func (m *menuHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	dall := new(dal.MenuItems)
-
-	i, err := dall.GetMenuItems()
-	if err != nil {
-		http.Error(w, fmt.Sprint("Orders  %s not found"), http.StatusNotFound)
+	menuItems, status := service.GetMenu()
+	if status != http.StatusOK {
+		w.WriteHeader(status)
+		w.Write([]byte("{\n\t\"error\": \"Internal server occurred\"\n}")) // TODO: Change(?)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(i); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+
+	byteValue, err := json.MarshalIndent(menuItems, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteValue)
 	}
 }
 
