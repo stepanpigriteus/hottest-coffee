@@ -64,7 +64,6 @@ func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	dall := new(dal.MenuItems)
 
-
 	i, err := dall.GetMenuItems()
 	if err != nil {
 		http.Error(w, fmt.Sprint("Orders  %s not found"), http.StatusNotFound)

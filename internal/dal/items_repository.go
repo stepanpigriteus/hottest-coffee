@@ -157,5 +157,25 @@ func saveItemsToFile(items *Items) error {
 	return nil
 }
 
+func GetInventory() (Items, error) {
+	path := filepath.Join(config.Dir, "inventory.json")
 
+	file, err := os.Open(path)
+	if err != nil {
+		return Items{}, err
+	}
+	defer file.Close()
 
+	value, err := io.ReadAll(file)
+	if err != nil {
+		return Items{}, err
+	}
+	var items Items
+	err = json.Unmarshal(value, &items.inventory)
+
+	if err != nil {
+		return Items{}, err
+	}
+
+	return items, nil
+}

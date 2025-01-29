@@ -61,6 +61,8 @@ func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 func (i *inventoryHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 	dall := new(dal.Items)
 	item, err := dall.GetItems()
+	t, err  := dal.GetInventory()
+	fmt.Println(t)
 	if err != nil {
 
 		http.Error(w, fmt.Sprint("Items  %s not found"), http.StatusNotFound)
