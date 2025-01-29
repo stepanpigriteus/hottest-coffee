@@ -245,3 +245,6 @@ func GetOrders() (Orders, error) {
 
 	return orders, nil
 }
+
+func PositionIngridient(id string) {
+}

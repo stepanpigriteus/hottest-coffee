@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hot/internal/dal"
+	"hot/internal/service"
 	"hot/models"
 	"net/http"
 	"strings"
@@ -76,16 +77,22 @@ func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.MenuItems)
-	i, err := dall.GetMenuItemById(id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("MenuItems with ID %s not found", id), http.StatusNotFound)
+	menuItem, status, msg := service.GetMenuItemById(id)
+	fmt.Println(menuItem, status, msg)
+
+	if msg != "" {
+		w.WriteHeader(status)
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(i); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	byteValue, err := json.MarshalIndent(menuItem, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteValue)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
