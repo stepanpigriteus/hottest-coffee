@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"hot/internal/dal"
 	"hot/models"
 	"math/rand"
@@ -77,23 +76,22 @@ func PostOrder(item *models.Order) (int, string) {
 
 		menuItem, err := menuRepo.GetMenuItemById(orderItems.ProductID)
 		if err != nil {
-			fmt.Println("нет такого в меню")
+			return http.StatusNotFound, "Menu item not found"
 		}
 		for _, ingridient := range menuItem.Ingredients {
 
 			invItem, err := invRepo.GetItemById(ingridient.IngredientID)
 			if err != nil {
-				fmt.Println("нет такого в сторе")
+				return http.StatusNotFound, "Ingredient not found in inventory"
 			}
 			if invItem.Quantity < ingridient.Quantity {
-				fmt.Println("не хватает")
+				return http.StatusConflict, "Insufficient ingredients in inventory"
 			}
 			invItem.Quantity -= ingridient.Quantity
 
 			err = invRepo.PutItemById(invItem, invItem.IngredientID)
 
 			if err != nil {
-				fmt.Println("ошибка при обновлении инвентаря")
 				return http.StatusInternalServerError, "Failed to update inventory"
 			}
 		}
