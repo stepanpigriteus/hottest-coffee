@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"hot/internal/dal"
 	"hot/models"
 	"math/rand"
@@ -68,6 +69,35 @@ func GetOrders() ([]models.Order, int) {
 func PostOrder(item *models.Order) (int, string) {
 	if !ValidOrder(item) {
 		return http.StatusBadRequest, models.ErrInvalidOrderItem.Error()
+	}
+	var menuRepo dal.MenuInterface = new(dal.MenuItems)
+	var invRepo dal.ItemInterface = new(dal.Items)
+
+	for _, orderItems := range item.Items {
+
+		menuItem, err := menuRepo.GetMenuItemById(orderItems.ProductID)
+		if err != nil {
+			fmt.Println("нет такого в меню")
+		}
+		for _, ingridient := range menuItem.Ingredients {
+
+			invItem, err := invRepo.GetItemById(ingridient.IngredientID)
+			if err != nil {
+				fmt.Println("нет такого в сторе")
+			}
+			if invItem.Quantity < ingridient.Quantity {
+				fmt.Println("не хватает")
+			}
+			invItem.Quantity -= ingridient.Quantity
+
+			err = invRepo.PutItemById(invItem, invItem.IngredientID)
+
+			if err != nil {
+				fmt.Println("ошибка при обновлении инвентаря")
+				return http.StatusInternalServerError, "Failed to update inventory"
+			}
+		}
+
 	}
 
 	item.CreatedAt = time.Now().Format(time.RFC3339)
