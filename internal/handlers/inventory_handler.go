@@ -28,10 +28,12 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(endpoint) == 3 && endpoint[0] == "inventory" {
+	if len(endpoint) == 3 && endpoint[1] == "inventory" {
 		id := endpoint[2]
+
 		switch r.Method {
 		case "GET":
+
 			i.getItemById(w, r, id)
 		case "PUT":
 			i.putUpdateItemById(w, r, id)

@@ -1,9 +1,0 @@
-{
-	"total_sales": 45,
-	"item_sales": [
-		{
-			"product_id": "espresso",
-			"quantity_sold": 12
-		}
-	]
-}
