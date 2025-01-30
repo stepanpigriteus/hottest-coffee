@@ -26,6 +26,7 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := endpoint[2]
+
 	if len(endpoint) == 3 {
 		switch r.Method {
 		case "GET":
@@ -35,11 +36,15 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		case "POST":
 			i.postNewItem(w, r)
 		case "DELETE":
+
+			i.deleteDeleteItemById(w, r, id)
 		default:
 			i.undefinedError(w, r)
 		}
 		return
 	}
+
+	i.undefinedError(w, r)
 }
 
 func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
@@ -113,11 +118,11 @@ func (i *inventoryHandler) putUpdateItemById(w http.ResponseWriter, r *http.Requ
 }
 
 func (i *inventoryHandler) deleteDeleteItemById(w http.ResponseWriter, r *http.Request, id string) {
-	dall := new(dal.Items)
-	err := dall.DeleteItemById(id)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("The item %s  was not deleted", id), http.StatusBadRequest)
-		return
+	status, msg := service.DeleteItemById(id)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
