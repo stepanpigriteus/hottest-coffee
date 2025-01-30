@@ -35,7 +35,7 @@ func (a *aggregationHandler) getTotalSales(w http.ResponseWriter, r *http.Reques
 
 	} else {
 		response := fmt.Sprintf("{\n\t\"total_sales\": %v\n}", totalSales)
-		json.NewEncoder(w).Encode(response)
+		w.Write([]byte(response))
 
 	}
 }

@@ -17,9 +17,11 @@ type Response struct {
 func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := strings.Split(r.URL.Path, "/")
 	method := r.Method
+
 	if r.URL.Path == "/orders/" {
 		switch r.Method {
 		case "POST":
+
 			o.postCreateOrder(w, r)
 		case "GET":
 			o.getAllOrders(w, r)
@@ -52,6 +54,7 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
 	var order models.Order
 	err := json.NewDecoder(r.Body).Decode(&order)
 	if err != nil {
@@ -88,18 +91,11 @@ func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
-	byteValue, err := json.MarshalIndent(orders, "", "\t")
-	if err != nil {
-
-		w.WriteHeader(http.StatusInternalServerError)
-		response := models.Error{Message: "Failed to generate json-response"}
-		json.NewEncoder(w).Encode(response)
-	} else {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(byteValue)
+		json.NewEncoder(w).Encode(orders)
 
-	}
+		return
+	
 }
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
@@ -114,16 +110,9 @@ func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id s
 		return
 	}
 
-	byteValue, err := json.MarshalIndent(order, "", "\t")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(order)
 
-		response := models.Error{Message: "Failed to generate json-response"}
-		json.NewEncoder(w).Encode(response)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(byteValue)
-	}
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
