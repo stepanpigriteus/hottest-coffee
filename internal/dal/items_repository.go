@@ -2,12 +2,11 @@ package dal
 
 import (
 	"encoding/json"
+	"hot/internal/pkg/config"
+	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
-
-	"hot/internal/pkg/config"
-	"hot/models"
 )
 
 type ItemInterface interface {
@@ -121,6 +120,15 @@ func OpenItems(items *Items) error {
 		return err
 	}
 	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	if fileInfo.Size() == 0 {
+		return nil
+	}
 
 	value, err := io.ReadAll(file)
 	if err != nil {

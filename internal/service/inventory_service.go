@@ -1,10 +1,9 @@
 package service
 
 import (
-	"net/http"
-
 	"hot/internal/dal"
 	"hot/models"
+	"net/http"
 )
 
 func GetItemById(id string) (models.InventoryItem, int, string) {

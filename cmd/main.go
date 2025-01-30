@@ -2,17 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"hot/internal/pkg/config"
+	"hot/internal/pkg/flags"
+	"hot/models"
 	"log/slog"
 	"os"
 	"path/filepath"
 
 	handler "hot/internal/handlers"
-	"hot/internal/pkg/config"
-	"hot/internal/pkg/flags"
-	"hot/models"
 )
-
-
 
 func main() {
 	config.Addr, config.Dir = flags.Flags()

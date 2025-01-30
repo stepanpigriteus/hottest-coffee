@@ -3,10 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-
 	"hot/internal/pkg/config"
 	"hot/internal/service"
+	"net/http"
 )
 
 type aggregationHandler struct{}
@@ -24,7 +23,7 @@ func (a *aggregationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (a *aggregationHandler) getTotalSales(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	config.Logger.Info("request received", "method", r.Method, "url", r.URL)
 	totalSales, status, errStr := service.GetTotalSales()
 	w.WriteHeader(status)

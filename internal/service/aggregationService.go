@@ -2,10 +2,9 @@ package service
 
 import (
 	"fmt"
-	"net/http"
-
 	"hot/internal/dal"
 	"hot/models"
+	"net/http"
 )
 
 func GetTotalSales() (float64, int, string) {

@@ -3,12 +3,11 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
-	"strings"
-
 	"hot/internal/dal"
 	"hot/internal/service"
 	"hot/models"
+	"net/http"
+	"strings"
 )
 
 type inventoryHandler struct{}
@@ -45,6 +44,7 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 	var item models.InventoryItem
+
 	err := json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
 		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)

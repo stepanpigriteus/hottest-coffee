@@ -8,7 +8,6 @@ var (
 	ErrDuplicateInventoryItemID = errors.New("item with the same IngredientID already exists")
 	ErrInvalidIntentoryItem     = errors.New("invalid inventory item")
 
-
 	ErrMenuFileNotFound    = errors.New("menu items file not found")
 	ErrMenuItemNotFound    = errors.New("menu item not found")
 	ErrDuplicateMenuItemID = errors.New("menu item with this ID already exists")
@@ -21,7 +20,4 @@ var (
 	ErrInvalidOrderItem        = errors.New("invalid order item")
 	ErrOrderClosed             = errors.New("order is already closed")
 	ErrOrderDelete             = errors.New("error order delete")
-	
 )
-
-

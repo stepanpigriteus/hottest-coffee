@@ -3,12 +3,11 @@ package dal
 import (
 	"encoding/json"
 	"fmt"
+	"hot/internal/pkg/config"
+	"hot/models"
 	"io"
 	"os"
 	"path/filepath"
-
-	"hot/internal/pkg/config"
-	"hot/models"
 )
 
 type MenuInterface interface {
@@ -181,5 +180,3 @@ func GetMenu() (MenuItems, error) {
 
 	return menuItems, nil
 }
-
-

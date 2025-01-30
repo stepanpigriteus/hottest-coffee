@@ -1,11 +1,10 @@
 package handler
 
 import (
+	"hot/internal/pkg/config"
 	"log/slog"
 	"net/http"
 	"time"
-
-	"hot/internal/pkg/config"
 )
 
 type responseRecorder struct {
