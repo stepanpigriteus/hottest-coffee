@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"hot/internal/service"
 	"hot/models"
 	"net/http"
 	"strings"
@@ -11,6 +12,7 @@ type menuHandler struct{}
 
 func (m *menuHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := strings.Split(r.URL.Path, "/")
+
 	if r.URL.Path == "/menu/" {
 		switch r.Method {
 		case "POST":
@@ -41,39 +43,109 @@ func (m *menuHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *menuHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
-	var menuItem models.MenuItem
-	json.NewDecoder(r.Body).Decode(&menuItem)
 	w.Header().Set("Content-Type", "application/json")
-	// response:=
-	// json.NewEncoder(w).Encode(response)
+
+	var menuItem models.MenuItem
+	err := json.NewDecoder(r.Body).Decode(&menuItem)
+	if err != nil {
+
+		w.WriteHeader(http.StatusBadRequest)
+		response := models.Error{Message: "Request body does not match json format"}
+
+		json.NewEncoder(w).Encode(response)
+
+		return
+	}
+	defer r.Body.Close()
+
+	status, msg := service.PostMenuItem(&menuItem)
+
+	w.WriteHeader(status)
+	if msg != "" {
+		w.WriteHeader(http.StatusBadRequest)
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
+	}
 }
 
 func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	// response:=
-	// json.NewEncoder(w).Encode(response)
+
+	menuItems, status := service.GetMenu()
+	if status != http.StatusOK {
+		w.WriteHeader(status)
+		response := models.Error{Message: "Internal Server Error Occured"}
+
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	byteValue, err := json.MarshalIndent(menuItems, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(byteValue)
+
+	}
 }
 
 func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
 	w.Header().Set("Content-Type", "application/json")
-	// response:=
-	// json.NewEncoder(w).Encode(response)
+	menuItem, status, msg := service.GetMenuItemById(id)
+
+	if msg != "" {
+		w.WriteHeader(status)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	byteValue, err := json.MarshalIndent(menuItem, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
+
+	} else {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(byteValue)
+	}
 }
 
 func (m *menuHandler) putUpdateItemById(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
 	var menuItem models.MenuItem
 	json.NewDecoder(r.Body).Decode(&menuItem)
-	w.Header().Set("Content-Type", "application/json")
-	// response:=
-	// json.NewEncoder(w).Encode(response)
+	status, msg := service.PutUpdateItemBy(&menuItem)
+	w.WriteHeader(status)
+	if msg != "" {
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
+	}
 }
 
 func (m *menuHandler) deleteDeleteItemById(w http.ResponseWriter, r *http.Request, id string) {
 	w.Header().Set("Content-Type", "application/json")
-	// response:=
-	// json.NewEncoder(w).Encode(response)
+	status, msg := service.DeleteMenuItemById(id)
+	w.WriteHeader(status)
+	if msg != "" {
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
+	}
 }
 
 func (m *menuHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	response := models.Error{Message: "Undefined Error, please check your method or endpoint correctness"}
+	json.NewEncoder(w).Encode(response)
 }
