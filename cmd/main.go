@@ -61,5 +61,5 @@ func main() {
 	config.Logger.Info("Server is running", slog.String("address", config.Dir), slog.Int("port", config.Addr))
 
 	// Start the server
-	handler.StartServer()
+	handler.StartServer(config.Addr)
 }

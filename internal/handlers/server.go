@@ -2,19 +2,21 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"hot/models"
 	"log"
 	"net/http"
 )
 
-func StartServer() {
+func StartServer(addr int) {
 	mux := http.NewServeMux()
 	mux.Handle("/", loggingMiddleware(&handleDef{}))
 	mux.Handle("/orders/", loggingMiddleware(&orderHandler{}))
 	mux.Handle("/menu/", loggingMiddleware(&menuHandler{}))
 	mux.Handle("/inventory/", loggingMiddleware(&inventoryHandler{}))
 	mux.Handle("/reports/", loggingMiddleware(&aggregationHandler{}))
-	err := http.ListenAndServe(":8200", mux)
+	port := fmt.Sprintf(":%d", addr)
+	err := http.ListenAndServe(port, mux)
 	if err != nil {
 		log.Fatal("Error starting server: ", err)
 	}
