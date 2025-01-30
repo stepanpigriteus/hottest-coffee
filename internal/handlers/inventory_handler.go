@@ -14,7 +14,9 @@ type inventoryHandler struct{}
 
 func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	endpoint := strings.Split(r.URL.Path, "/")
+
 	if r.URL.Path == "/inventory/" {
+		fmt.Println(r.URL.Path, r.Method)
 		switch r.Method {
 		case "POST":
 			i.postNewItem(w, r)
@@ -25,9 +27,9 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	id := endpoint[2]
 
-	if len(endpoint) == 3 {
+	if len(endpoint) == 3 && endpoint[0] == "inventory" {
+		id := endpoint[2]
 		switch r.Method {
 		case "GET":
 			i.getItemById(w, r, id)
@@ -50,36 +52,31 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 	var item models.InventoryItem
 
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-	dall := new(dal.Items)
+	status, msg := service.PostItem(&item)
 
-	err = dall.PostItem(&item)
-	if err != nil {
-		http.Error(w, "Error while creating inventory item: "+err.Error(), http.StatusInternalServerError)
-		return
+	w.WriteHeader(status)
+	if msg != "" {
+		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (i *inventoryHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
-	dall := new(dal.Items)
-	item, err := dall.GetItems()
-	t, err := dal.GetInventory()
-	fmt.Println(t)
-	if err != nil {
-
-		http.Error(w, fmt.Sprint("Items  %s not found"), http.StatusNotFound)
+	items, status := service.GetItems()
+	if status != http.StatusOK {
+		w.WriteHeader(status)
+		w.Write([]byte("{\n\t\"error\": \"Internal server occurred\"\n}"))
 		return
 	}
-	if err := json.NewEncoder(w).Encode(item); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
-	}
 
-	w.Header().Set("Content-Type", "application/json")
+	byteValue, err := json.MarshalIndent(items, "", "\t")
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(byteValue)
+	}
 }
 
 func (i *inventoryHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
