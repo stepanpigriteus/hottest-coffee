@@ -14,7 +14,7 @@ type aggregationHandler struct{}
 func (a *aggregationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/reports/total-sales/" && r.Method == "GET" {
 		a.getTotalSales(w, r)
-	} else if r.URL.Path == "/reports/popular-items" && r.Method == "GET" {
+	} else if r.URL.Path == "/reports/popular-items/" && r.Method == "GET" {
 		a.getPopularItems(w, r)
 	} else {
 		a.undefinedError(w, r)
@@ -29,7 +29,6 @@ func (a *aggregationHandler) getTotalSales(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(status)
 	if status != http.StatusOK {
 		w.WriteHeader(500)
-
 		response := models.Error{Message: errStr}
 		json.NewEncoder(w).Encode(response)
 
@@ -51,14 +50,7 @@ func (a *aggregationHandler) getPopularItems(w http.ResponseWriter, r *http.Requ
 		response := models.Error{Message: errStr}
 		json.NewEncoder(w).Encode(response)
 	} else {
-		byteValue, err := json.MarshalIndent(popularItems, "", "\t")
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			response := models.Error{Message: "Error while writing response"}
-			json.NewEncoder(w).Encode(response)
-		} else {
-			json.NewEncoder(w).Encode(byteValue)
-		}
+		json.NewEncoder(w).Encode(popularItems)
 	}
 }
 

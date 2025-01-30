@@ -84,17 +84,8 @@ func (i *inventoryHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	byteValue, err := json.MarshalIndent(items, "", "\t")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-
-		response := models.Error{Message: "Failed to generate json-response"}
-		json.NewEncoder(w).Encode(response)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(byteValue)
-
-	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(items)
 }
 
 func (i *inventoryHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
@@ -108,17 +99,9 @@ func (i *inventoryHandler) getItemById(w http.ResponseWriter, r *http.Request, i
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	byteValue, err := json.MarshalIndent(inventoryItem, "", "\t")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
 
-		response := models.Error{Message: "Failed to generate json-response"}
-		json.NewEncoder(w).Encode(response)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(byteValue)
-
-	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(inventoryItem)
 }
 
 func (i *inventoryHandler) putUpdateItemById(w http.ResponseWriter, r *http.Request, id string) {

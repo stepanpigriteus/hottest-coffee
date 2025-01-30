@@ -16,7 +16,7 @@ func GetOrderById(id string) (models.Order, int, string) {
 		if err == models.ErrOrderNotFound {
 			return models.Order{}, http.StatusNotFound, err.Error()
 		}
-		return models.Order{}, http.StatusInternalServerError, ""
+		return models.Order{}, http.StatusInternalServerError, "Order not found"
 	}
 
 	return order, http.StatusOK, ""
@@ -29,10 +29,10 @@ func DeleteOrderById(id string) (int, string) {
 		if err == models.ErrMenuItemNotFound {
 			return http.StatusNotFound, err.Error()
 		}
-		return http.StatusInternalServerError, ""
+		return http.StatusInternalServerError, "Internal server error"
 	}
 
-	return http.StatusOK, ""
+	return http.StatusOK, "Order deleted succecfully"
 }
 
 func PutOrderById(order *models.Order, id string) (int, string) {
@@ -49,10 +49,10 @@ func PutOrderById(order *models.Order, id string) (int, string) {
 		} else if err == models.ErrOrderClosed {
 			return http.StatusBadRequest, err.Error()
 		}
-		return http.StatusInternalServerError, ""
+		return http.StatusInternalServerError, "Internal server error"
 	}
 
-	return http.StatusOK, ""
+	return http.StatusOK, "Order update succecfully"
 }
 
 func GetOrders() ([]models.Order, int) {
@@ -87,6 +87,7 @@ func PostOrder(item *models.Order) (int, string) {
 			if invItem.Quantity < ingridient.Quantity {
 				return http.StatusConflict, "Insufficient ingredients in inventory"
 			}
+
 			invItem.Quantity -= ingridient.Quantity * float64(orderItems.Quantity)
 
 			err = invRepo.PutItemById(invItem, invItem.IngredientID)

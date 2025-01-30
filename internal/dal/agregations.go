@@ -48,6 +48,7 @@ func CountClosedOrders(orders []models.Order) float64 {
 			for _, r := range order.Items {
 				item, _ := menu.GetMenuItemById(r.ProductID)
 				count += item.Price * float64(r.Quantity)
+
 			}
 		}
 	}

@@ -133,12 +133,18 @@ func (orders *Orders) PutOrderById(item *models.Order, id string) error {
 					return err
 				}
 			}
+			if item.Status == "closed" {
+				return fmt.Errorf("A closed order cannot be updated")
+			}
+			if item.CustomerName != "" {
+				orders.orders[i].CustomerName = item.CustomerName
+			}
 
 			orders.orders[i].ID = id
 			orders.orders[i].CustomerName = item.CustomerName
 			orders.orders[i].Items = item.Items
-			orders.orders[i].Status = item.Status
-			orders.orders[i].CreatedAt = item.CreatedAt
+			// orders.orders[i].Status = item.Status
+			// orders.orders[i].CreatedAt = item.CreatedAt
 
 			if err := saveOrdersToFile(orders); err != nil {
 				return err
@@ -203,7 +209,7 @@ func Open(orders *Orders) error {
 	}
 	err = json.Unmarshal(value, &orders.orders)
 	if err != nil {
-		return err
+		return fmt.Errorf("incorrect file format")
 	}
 
 	return nil
@@ -325,12 +331,13 @@ func ValidateOrderIngredients(order *models.Order, menuItems []models.MenuItem, 
 
 		for _, ingredient := range menuItem.Ingredients {
 			requiredQty := int(ingredient.Quantity) * orderItem.Quantity
+
 			currentQty, exists := inventoryMap[ingredient.IngredientID]
+			fmt.Println(requiredQty, currentQty, inventoryMap[ingredient.IngredientID])
 			if !exists || currentQty < requiredQty {
 				return models.ErrInsufficientIngredients
 			}
 
-			inventoryMap[ingredient.IngredientID] -= requiredQty
 		}
 	}
 

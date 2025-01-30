@@ -79,17 +79,8 @@ func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
-	byteValue, err := json.MarshalIndent(menuItems, "", "\t")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		response := models.Error{Message: "Failed to generate json-response"}
-		json.NewEncoder(w).Encode(response)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(byteValue)
-
-	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(menuItems)
 }
 
 func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
@@ -103,18 +94,8 @@ func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id str
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
-	byteValue, err := json.MarshalIndent(menuItem, "", "\t")
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-
-		response := models.Error{Message: "Failed to generate json-response"}
-		json.NewEncoder(w).Encode(response)
-
-	} else {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(byteValue)
-	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(menuItem)
 }
 
 func (m *menuHandler) putUpdateItemById(w http.ResponseWriter, r *http.Request, id string) {

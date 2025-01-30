@@ -75,7 +75,6 @@ func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
 	} else {
 		response["error"] = msg
 	}
-
 	json.NewEncoder(w).Encode(response)
 }
 
@@ -91,11 +90,10 @@ func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(orders)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(orders)
 
-		return
-	
+	return
 }
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
@@ -112,7 +110,6 @@ func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id s
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(order)
-
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
