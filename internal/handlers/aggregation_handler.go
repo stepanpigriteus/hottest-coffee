@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"hot/internal/pkg/config"
 	"hot/internal/service"
+	"hot/models"
 	"net/http"
 )
 
@@ -22,37 +23,47 @@ func (a *aggregationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (a *aggregationHandler) getTotalSales(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Type", "application/json")
 
 	config.Logger.Info("request received", "method", r.Method, "url", r.URL)
 	totalSales, status, errStr := service.GetTotalSales()
 	w.WriteHeader(status)
 	if status != http.StatusOK {
-		w.Write([]byte("{\n\t\"error\": \"" + errStr + "\"\n}"))
+		w.WriteHeader(500)
+
+		response := models.Error{Message: errStr}
+		json.NewEncoder(w).Encode(response)
+
 	} else {
-		w.Write([]byte(fmt.Sprintf("{\n\t\"total_sales\": %v\n}", totalSales)))
+		response := fmt.Sprintf("{\n\t\"total_sales\": %v\n}", totalSales)
+		json.NewEncoder(w).Encode(response)
+
 	}
 }
 
 func (a *aggregationHandler) getPopularItems(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Content-Type", "application/json")
 	config.Logger.Info("request received", "method", r.Method, "url", r.URL)
 	popularItems, status, errStr := service.GetPopularItems()
 	w.WriteHeader(status)
 	if status != http.StatusOK {
-		w.Write([]byte("{\n\t\"error\": \"" + errStr + "\"\n}"))
+		w.WriteHeader(500)
+
+		response := models.Error{Message: errStr}
+		json.NewEncoder(w).Encode(response)
 	} else {
 		byteValue, err := json.MarshalIndent(popularItems, "", "\t")
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("{\n\t\"error\": \"Error while writing response\"\n}"))
+			response := models.Error{Message: "Error while writing response"}
+			json.NewEncoder(w).Encode(response)
 		} else {
-			w.Write(byteValue)
+			json.NewEncoder(w).Encode(byteValue)
 		}
 	}
 }
 
 func (a *aggregationHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
+	w.Header().Set("Content-Type", "application/json")
+	response := models.Error{Message: "Undefined Error, please check your method or endpoint correctness"}
+	json.NewEncoder(w).Encode(response)
 }

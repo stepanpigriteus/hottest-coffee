@@ -50,11 +50,14 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var item models.InventoryItem
 	err := json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("{\n\t\"error\": \"Request body does not match json format\"\n}"))
+		response := models.Error{Message: "Request body does not match json format"}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 	defer r.Body.Close()
@@ -62,74 +65,103 @@ func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
+
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (i *inventoryHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	items, status := service.GetItems()
 	if status != http.StatusOK {
 		w.WriteHeader(status)
-		w.Write([]byte("{\n\t\"error\": \"Internal server occurred\"\n}"))
+		response := models.Error{Message: "Internal server error occurred"}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	byteValue, err := json.MarshalIndent(items, "", "\t")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(byteValue)
+		json.NewEncoder(w).Encode(byteValue)
+
 	}
 }
 
 func (i *inventoryHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
+
 	inventoryItem, status, msg := service.GetItemById(id)
 	if msg != "" {
 		w.WriteHeader(status)
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 	byteValue, err := json.MarshalIndent(inventoryItem, "", "\t")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(byteValue)
+		json.NewEncoder(w).Encode(byteValue)
+
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (i *inventoryHandler) putUpdateItemById(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var item models.InventoryItem
 	err := json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		response := models.Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+
 		return
 	}
 	dall := new(dal.Items)
 	err = dall.PutItemById(item, id)
 	if err != nil {
-		http.Error(w, "Error while creating item: "+err.Error(), http.StatusInternalServerError)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		response := models.Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (i *inventoryHandler) deleteDeleteItemById(w http.ResponseWriter, r *http.Request, id string) {
-	status, msg := service.DeleteItemById(id)
 	w.Header().Set("Content-Type", "application/json")
+
+	status, msg := service.DeleteItemById(id)
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+		w.WriteHeader(500)
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
+
 	}
 	w.Header().Set("Content-Type", "application/json")
 }
 
 func (i *inventoryHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	response := models.Error{Message: "Undefined Error, please check your method or endpoint correctness"}
+	json.NewEncoder(w).Encode(response)
 }

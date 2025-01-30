@@ -51,16 +51,19 @@ func (o *orderHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	var order models.Order
 	err := json.NewDecoder(r.Body).Decode(&order)
 	if err != nil {
-		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+
+		response := models.Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	status, msg := service.PostOrder(&order)
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
 	response := make(map[string]string)
@@ -74,79 +77,101 @@ func (o *orderHandler) postCreateOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func (o *orderHandler) getAllOrders(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	orders, status := service.GetOrders()
 
 	w.WriteHeader(status)
 	if status != http.StatusOK {
+		w.WriteHeader(500)
 
-		w.Write([]byte("{\n\t\"error\": \"Internal server occurred\"\n}")) // TODO: Change(?)
+		response := models.Error{Message: "Internal server error occurred"}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	byteValue, err := json.MarshalIndent(orders, "", "\t")
 	if err != nil {
+
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(byteValue)
+		json.NewEncoder(w).Encode(byteValue)
+
 	}
 }
 
 func (o *orderHandler) getOrderById(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
 	order, status, msg := service.GetOrderById(id)
 
 	if msg != "" {
 		w.WriteHeader(status)
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	byteValue, err := json.MarshalIndent(order, "", "\t")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(byteValue)
+		json.NewEncoder(w).Encode(byteValue)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) putUpdateOrder(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
 	var order models.Order
 	json.NewDecoder(r.Body).Decode(&order)
 	status, msg := service.PutOrderById(&order, id)
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"" + msg + "\"\n}"))
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) deleteDeleteOrder(w http.ResponseWriter, r *http.Request, id string) {
-	status, msg := service.DeleteOrderById(id)
 	w.Header().Set("Content-Type", "application/json")
+	status, msg := service.DeleteOrderById(id)
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (o *orderHandler) postCloseOrder(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
 	status, msg := service.CloseOrder(id)
 	response := Response{Message: msg}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+
+		w.WriteHeader(http.StatusInternalServerError)
+
+		response2 := models.Error{Message: err.Error()}
+		json.NewEncoder(w).Encode(response2)
 	}
 }
 
 func (o *orderHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	response := models.Error{Message: "Undefined Error, please check your method or endpoint correctness"}
+	json.NewEncoder(w).Encode(response)
 }

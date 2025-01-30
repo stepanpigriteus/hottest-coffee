@@ -87,7 +87,7 @@ func PostOrder(item *models.Order) (int, string) {
 			if invItem.Quantity < ingridient.Quantity {
 				return http.StatusConflict, "Insufficient ingredients in inventory"
 			}
-			invItem.Quantity -= ingridient.Quantity
+			invItem.Quantity -= ingridient.Quantity* float64(orderItems.Quantity)
 
 			err = invRepo.PutItemById(invItem, invItem.IngredientID)
 

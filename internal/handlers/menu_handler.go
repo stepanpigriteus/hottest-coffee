@@ -43,11 +43,17 @@ func (m *menuHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *menuHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	var menuItem models.MenuItem
 	err := json.NewDecoder(r.Body).Decode(&menuItem)
 	if err != nil {
+
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("{\n\t\"error\": \"Request body does not match json format\"\n}"))
+		response := models.Error{Message: "Request body does not match json format"}
+
+		json.NewEncoder(w).Encode(response)
+
 		return
 	}
 	defer r.Body.Close()
@@ -56,71 +62,90 @@ func (m *menuHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+		w.WriteHeader(http.StatusBadRequest)
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (m *menuHandler) getAllItems(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	menuItems, status := service.GetMenu()
 	if status != http.StatusOK {
 		w.WriteHeader(status)
-		w.Write([]byte("{\n\t\"error\": \"Internal server occurred\"\n}")) // TODO: Change(?)
+		response := models.Error{Message: "Internal Server Error Occured"}
+
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	byteValue, err := json.MarshalIndent(menuItems, "", "\t")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(byteValue)
+		json.NewEncoder(w).Encode(byteValue)
+
 	}
 }
 
 func (m *menuHandler) getItemById(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
 	menuItem, status, msg := service.GetMenuItemById(id)
 
 	if msg != "" {
 		w.WriteHeader(status)
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	byteValue, err := json.MarshalIndent(menuItem, "", "\t")
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("{\n\t\"error\": \"Failed to generate json-response\"\n}"))
+
+		response := models.Error{Message: "Failed to generate json-response"}
+		json.NewEncoder(w).Encode(response)
+
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.Write(byteValue)
+		json.NewEncoder(w).Encode(byteValue)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (m *menuHandler) putUpdateItemById(w http.ResponseWriter, r *http.Request, id string) {
+	w.Header().Set("Content-Type", "application/json")
 	var menuItem models.MenuItem
 	json.NewDecoder(r.Body).Decode(&menuItem)
 	status, msg := service.PutUpdateItemBy(&menuItem)
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (m *menuHandler) deleteDeleteItemById(w http.ResponseWriter, r *http.Request, id string) {
-	status, msg := service.DeleteMenuItemById(id)
 	w.Header().Set("Content-Type", "application/json")
+	status, msg := service.DeleteMenuItemById(id)
 	w.WriteHeader(status)
 	if msg != "" {
-		w.Write([]byte("{\n\t\"error\": \"" + msg + "\"\n}"))
+		w.WriteHeader(500)
+
+		response := models.Error{Message: msg}
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
 }
 
 func (m *menuHandler) undefinedError(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Undefined Error, please check your method or endpoint correctness"))
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+	response := models.Error{Message: "Undefined Error, please check your method or endpoint correctness"}
+	json.NewEncoder(w).Encode(response)
 }
