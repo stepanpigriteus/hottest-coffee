@@ -124,6 +124,15 @@ func OpenMenu(menuItems *MenuItems) error {
 	}
 	defer file.Close()
 
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	if fileInfo.Size() == 0 {
+		return nil
+	}
+
 	value, err := io.ReadAll(file)
 	if err != nil {
 		return err
