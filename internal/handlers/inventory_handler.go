@@ -51,7 +51,13 @@ func (i *inventoryHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (i *inventoryHandler) postNewItem(w http.ResponseWriter, r *http.Request) {
 	var item models.InventoryItem
-
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("{\n\t\"error\": \"Request body does not match json format\"\n}"))
+		return
+	}
+	defer r.Body.Close()
 	status, msg := service.PostItem(&item)
 
 	w.WriteHeader(status)
