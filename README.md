@@ -1,29 +1,5 @@
 # Hot-Coffee: Coffee Shop Management System
 
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Project Overview](#project-overview)
-- [Features](#features)
-- [Architecture](#architecture)
-  - [Layered Architecture](#layered-architecture)
-  - [Data Models](#data-models)
-- [API Endpoints](#api-endpoints)
-  - [Orders](#orders)
-  - [Menu Items](#menu-items)
-  - [Inventory](#inventory)
-  - [Aggregations](#aggregations)
-- [Data Storage](#data-storage)
-- [Logging](#logging)
-- [Error Handling and Validation](#error-handling-and-validation)
-- [Usage](#usage)
-- [Getting Started](#getting-started)
-- [Dependencies](#dependencies)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
 ## Introduction
 
 Managing a coffee shop involves juggling multiple tasks: taking orders, tracking inventory, updating the menu, and ensuring customer satisfaction. The `hot-coffee` project is a simplified coffee shop management system designed to provide hands-on experience with backend development, RESTful API design, and data management using Go.
@@ -83,34 +59,6 @@ The application is built using a three-layered architecture:
      - Creates repository interfaces for each entity (e.g., `OrderRepository`, `MenuRepository`, `InventoryRepository`).
      - Implements these interfaces.
      - Organizes data in separate JSON files for each entity, stored in the `data/` directory.
-
-### Project Structure
-
-```plaintext
-hot-coffee/
-├── cmd/
-│   └── main.go
-├── internal/
-│   ├── handler/
-│   │   ├── order_handler.go
-│   │   ├── menu_handler.go
-│   │   └── inventory_handler.go
-│   ├── service/
-│   │   ├── order_service.go
-│   │   ├── menu_service.go
-│   │   ├── inventory_service.go
-│   │   └── ...
-│   └── dal/
-│       ├── order_repository.go
-│       └── ...
-├── models/
-│   ├── order.go
-│   ├── menu_item.go
-│   ├── inventory_item.go
-│   └── ...
-├── go.mod
-├── go.sum
-└── ...
 ```
 
 ### Orders
